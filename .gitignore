@@ -1,0 +1,17 @@
+# virtualenv
+.venv
+
+# Packaging
+build
+dist
+*.egg-info
+
+# Generated variable contents
+var/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Logging files
+*.log
