@@ -14,15 +14,11 @@ import random
 
 from pathlib import Path
 
-from PIL import Image
-from PIL import ImageDraw
-
+import click
 import humanize
 
-
-VAR_PATH = Path("./var").resolve()
-BUILD_PATH = VAR_PATH / "builds"
-BUILD_GIF_PATH = BUILD_PATH / "gifs"
+from PIL import Image
+from PIL import ImageDraw
 
 
 # A set of configurations for expected (not exactly) file size
@@ -203,7 +199,6 @@ class BuilderGif:
         for i, color_1 in enumerate(colors):
             not_current_color = [c for c in colors if(c != color_1)]
             color_2 = random.choice(not_current_color)
-            print(i, color_1, color_2)
             self.animate_circle(
                 images,
                 width,
@@ -228,14 +223,14 @@ class BuilderGif:
 
         return destination
 
-    def batch(self, configs):
+    def batch(self, basedir, configs):
         """
         Run a batch creation of image files.
         """
         created_checksum = []
         now = datetime.datetime.now().isoformat(timespec="seconds").replace(":", "-")
 
-        destination_path = BUILD_GIF_PATH / now
+        destination_path = basedir / now
         destination_path.mkdir(mode=0o777, parents=True)
 
         print()
@@ -279,14 +274,77 @@ class BuilderGif:
         return destination_path
 
 
+@click.command()
+@click.option("--list", "list_mode", is_flag=True, help="List available configurations.")
+@click.option("--total", default=1, help="Number of GIF file to create, default to 1.")
+@click.option(
+    "--config",
+    default="58KiB",
+    type=click.Choice(SIZE_CONFIGS.keys()),
+    help=(
+        "Configuration name to use for GIF builder. Default to '58KiB'. "
+        "Use the '--list' option to display available configurations."
+    ),
+)
+@click.option(
+    "--destination",
+    type=click.Path(
+        file_okay=False, dir_okay=True, writable=True, resolve_path=True,
+        path_type=Path,
+    ),
+    help=(
+        "Directory path where to create new directory for created GIF files. Path can "
+        "absolute or relative (to current directory). Default will create into "
+        "'var/gifs/' directory relative to current directory."
+    ),
+)
+def cli_interface(list_mode, total, config, destination):
+    """
+    Create GIF file from options.
+
+    Any GIF will look almost the same but with some variance to make them unique.
+
+    Default mode is to create GIF files but there is also a mode to list available
+    GIF builder configurations.
+    """
+    if list_mode:
+        click.echo("🗃️ Available configurations 🗃️")
+        click.echo("")
+
+        for name, options in SIZE_CONFIGS.items():
+            click.echo("🔧 {}".format(name))
+
+            if "width" in options:
+                click.echo("   - Width: {}".format(options["width"]))
+            if "colors" in options:
+                click.echo("   - Colors: {}".format(options["colors"]))
+            if "radius" in options:
+                click.echo("   - Radius: {}".format(options["radius"]))
+            if "step" in options:
+                click.echo("   - Step: {}".format(options["step"]))
+            if "duration" in options:
+                click.echo("   - Duration: {}".format(options["duration"]))
+
+            click.echo("")
+
+    else:
+        if not destination:
+            destination = Path("./var").resolve() / "gifs"
+
+        click.echo("Destination: {}".format(destination))
+        click.echo("Configuration: {}".format(config))
+        click.echo("Total to create: {}".format(total))
+
+        builder = BuilderGif()
+
+        # Will build "length" time of the same config
+        configs = [SIZE_CONFIGS[config]] * total
+
+        builder.batch(destination, configs)
+
+        click.echo("")
+        click.echo("🎉 Finished 🎉")
+
+
 if __name__ == "__main__":
-    """
-    Any GIF will look almost the same.
-    """
-    builder = BuilderGif()
-
-    # Will build 'length' time of the same config
-    length = 3
-    configs = [SIZE_CONFIGS["58KiB"]] * length
-
-    builder.batch(configs)
+    cli_interface()

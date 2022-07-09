@@ -8,8 +8,7 @@ media parsing validation.
 
 It involves Pillow requirement for images and FFmpeg with a Python wrapper for videos.
 
-This project is more like a working Proof & Concept than anything else, don't expect
-script just working out of the box with a lot of options.
+This project is more like a working Proof & Concept than anything else.
 
 Install
 -------
