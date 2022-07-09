@@ -82,7 +82,7 @@ class GifToMp4Converter:
     help=(
         "Directory path where to create new directory for created MP4 files. Path can "
         "absolute or relative (to current directory). Default will create into "
-        "'var/gifs/' directory relative to current directory."
+        "'var/mp4s/' directory relative to current directory."
     ),
 )
 def cli_interface(source, destination):
